@@ -65,11 +65,12 @@ public class Room {
   private Object pipelineCreateLock = new Object();
   private Object pipelineReleaseLock = new Object();
   private volatile boolean pipelineReleased = false;
+  public boolean getRecordingFlag;
   private boolean destroyKurentoClient;
 
   private final ConcurrentHashMap<String, String> filterStates = new ConcurrentHashMap<>();
 
-  public Room(String roomName, KurentoClient kurentoClient, RoomHandler roomHandler,
+public Room(String roomName, KurentoClient kurentoClient, RoomHandler roomHandler,
       boolean destroyKurentoClient) {
     this.name = roomName;
     this.kurentoClient = kurentoClient;
@@ -110,8 +111,8 @@ public class Room {
 
     Participant participant =
         new Participant(participantId, userName, this, getPipeline(), dataChannels, webParticipant);
-    participants.put(participantId, participant);
-
+    participants.put(participantId, participant);    
+    
     filterStates.forEach((filterId, state) -> {
       log.info("Adding filter {}", filterId);
       roomHandler.updateFilter(name, participant, filterId, state);
@@ -299,6 +300,7 @@ public class Room {
         throw new RoomException(Code.ROOM_CANNOT_BE_CREATED_ERROR_CODE,
             "Unable to create media pipeline for room '" + name + "'");
       }
+      
 
       pipeline.addErrorListener(new EventListener<ErrorEvent>() {
         @Override

@@ -17,8 +17,18 @@
 package org.kurento.room.rpc;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
+import org.kurento.client.Composite;
+import org.kurento.client.ErrorEvent;
+import org.kurento.client.EventListener;
+import org.kurento.client.HubPort;
+import org.kurento.client.MediaPipeline;
+import org.kurento.client.MediaProfileSpecType;
+import org.kurento.client.PassThrough;
+import org.kurento.client.RecorderEndpoint;
 import org.kurento.jsonrpc.Session;
 import org.kurento.jsonrpc.Transaction;
 import org.kurento.jsonrpc.message.Request;
@@ -33,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.gson.JsonObject;
 
+
 /**
  * Controls the user interactions by delegating her JSON-RPC requests to the room API.
  *
@@ -43,6 +54,13 @@ public class JsonRpcUserControl {
   private static final Logger log = LoggerFactory.getLogger(JsonRpcUserControl.class);
 
   protected NotificationRoomManager roomManager;
+  
+  // recording variables
+  private Composite composite;
+  private HubPort hubPort;
+  private RecorderEndpoint recorderEndpoint;
+
+private PassThrough passThru;
 
   @Autowired
   public JsonRpcUserControl(NotificationRoomManager roomManager) {
@@ -69,14 +87,59 @@ public class JsonRpcUserControl {
     roomManager.joinRoom(userName, roomName, dataChannels, true, participantRequest);
   }
 
-  public void publishVideo(Transaction transaction, Request<JsonObject> request,
-      ParticipantRequest participantRequest) {
+
+  public void publishVideo(Transaction transaction, Request<JsonObject> request, ParticipantRequest participantRequest) {
     String sdpOffer = getStringParam(request, ProtocolElements.PUBLISHVIDEO_SDPOFFER_PARAM);
     boolean doLoopback = getBooleanParam(request, ProtocolElements.PUBLISHVIDEO_DOLOOPBACK_PARAM);
+  
+    // Recording
+  	String participantId = participantRequest.getParticipantId();
+    MediaPipeline pipeline = roomManager.getPipeline(participantId);
 
-    roomManager.publishMedia(participantRequest, sdpOffer, doLoopback);
+    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss-S");
+    String now = df.format(new Date());
+    String fileName = now + "_" + participantId + ".webm";
+    String webMFilePath = "file://home/kristina/recordings/" + fileName;
+    log.info("RECORDER - INITIALIZING");
+    
+    boolean isRoomRecording =roomManager.IsRoomRecording(participantId); 
+    
+    if (isRoomRecording == false){
+	    this.composite = new Composite.Builder(pipeline).build();
+	    this.hubPort = new HubPort.Builder(composite).build();
+	
+	    this.passThru= new PassThrough.Builder(pipeline).build();
+	    this.hubPort.connect(passThru);
+	
+	    log.info("RECORDER - BUILDING");
+	    
+	    // creating recorder
+	    this.recorderEndpoint = new RecorderEndpoint.Builder(pipeline, webMFilePath)
+	            .withMediaProfile(MediaProfileSpecType.WEBM)
+	            .build();
+		this.recorderEndpoint.addErrorListener(new EventListener<ErrorEvent>() {
+		    @Override
+		    public void onEvent(ErrorEvent event) {
+		      String desc =
+		          event.getType() + ": " + event.getDescription() + "(errCode=" + event.getErrorCode()
+		              + ")";
+		      log.warn("RECORDING error encountered: {}",  desc);
+		    }
+		  });
+		this.passThru.connect(this.recorderEndpoint);
+    }
+	//	Recording - end
+	
+    log.info("RECORDER - PUBLISHING MEDIA");
+    roomManager.publishMedia(participantRequest, sdpOffer, doLoopback, this.hubPort);
+    // it does for each MediaElement:    participant.getPublisher().apply(mediaElem);
+    
+    if (isRoomRecording == false){
+    	log.info("RECORDER - STARTED RECORDING for participant {}", participantId);	
+    	this.recorderEndpoint.record();
+    }
   }
-
+  
   public void unpublishVideo(Transaction transaction, Request<JsonObject> request,
       ParticipantRequest participantRequest) {
     roomManager.unpublishMedia(participantRequest);

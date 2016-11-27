@@ -46,6 +46,8 @@
 	<properties>
 		<!-- Main class -->
 		<start-class>org.kurento.room.demo.KurentoRoomDemoApp</start-class>
+		<!-- tomcat.version>8.0.38</tomcat.version-->
+		<!-- jetty.version>9.2.17.v20160517</jetty.version -->
 	</properties>
 
 	<dependencies>
@@ -60,13 +62,40 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>org.kurento</groupId>
-			<artifactId>kurento-room-client-js</artifactId>
-		</dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+    </dependency>
+		
+	<dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context-support</artifactId>
+	</dependency>
+		        
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <scope>runtime</scope>
+    </dependency>
+        
+	 <dependency>
+	    <groupId>org.springframework.boot</groupId>
+	    <artifactId>spring-boot-starter-log4j2</artifactId>
+	</dependency>
+
+	<dependency>
+		<groupId>org.kurento</groupId>
+		<artifactId>kurento-room-client-js</artifactId>
+	</dependency>
 		<dependency>
 			<groupId>org.kurento</groupId>
 			<artifactId>kurento-room-test</artifactId>
 			<scope>test</scope>
+			<exclusions>
+            <exclusion>
+                <groupId>javax.servlet</groupId>
+                <artifactId>servlet-api</artifactId>
+            </exclusion>
+    		</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.kurento.module</groupId>
@@ -121,6 +150,7 @@
 			<artifactId>angular-clipboard</artifactId>
 			<version>1.4.2</version>
 		</dependency>
+
 	</dependencies>
 
 	<build>

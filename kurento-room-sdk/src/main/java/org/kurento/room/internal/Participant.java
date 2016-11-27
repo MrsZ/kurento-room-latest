@@ -26,10 +26,12 @@ import java.util.concurrent.TimeUnit;
 import org.kurento.client.Continuation;
 import org.kurento.client.ErrorEvent;
 import org.kurento.client.Filter;
+import org.kurento.client.HubPort;
 import org.kurento.client.IceCandidate;
 import org.kurento.client.MediaElement;
 import org.kurento.client.MediaPipeline;
 import org.kurento.client.MediaType;
+import org.kurento.client.PassThrough;
 import org.kurento.client.SdpEndpoint;
 import org.kurento.client.internal.server.KurentoServerException;
 import org.kurento.room.api.MutedMediaType;
@@ -80,6 +82,7 @@ public class Participant {
     this.pipeline = pipeline;
     this.room = room;
     this.publisher = new PublisherEndpoint(web, dataChannels, this, name, pipeline);
+    
 
     for (Participant other : room.getParticipants()) {
       if (!other.getName().equals(this.name)) {
@@ -364,6 +367,21 @@ public class Participant {
           senderName);
       subscriberEndpoint.mute(muteType);
     }
+  }
+  
+  public void connectRecorder(PassThrough passThru, MediaElement mediaEl ) {
+	  passThru.connect(publisher.getEndpoint());	// records ok; does not return video feed to client
+	  mediaEl.connect(passThru);
+	  log.info("CONNECTED RECORDER");
+	  
+	  /*this.publisher.apply(passThru);		// creates 0byte file. nothing recorded
+	  passThru.connect(mediaEl);*/
+	  /*publisher.connect(passThru);		// creates 0byte file. nothing recorded
+	  passThru.connect(mediaEl);*/
+	  //passThru.connect(mediaEl);		// used with passThru.connect(publisher.getEndpoint()); it creates 0byte file. nothing recorded
+	  //mediaEl.connect(publisher.getEndpoint()); 	// records ok; does not return video feed to client
+	  /*mediaEl.connect(publisher.getEndpoint()); // creates 0byte file. nothing recorded
+	  passThru.connect(mediaEl);*/
   }
 
   public void unmuteSubscribedMedia(Participant sender) {

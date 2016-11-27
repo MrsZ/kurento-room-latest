@@ -24,11 +24,13 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.kurento.client.HubPort;
 import org.kurento.client.IceCandidate;
 import org.kurento.client.KurentoClient;
 import org.kurento.client.MediaElement;
 import org.kurento.client.MediaPipeline;
 import org.kurento.client.MediaType;
+import org.kurento.client.PassThrough;
 import org.kurento.client.RtpEndpoint;
 import org.kurento.client.WebRtcEndpoint;
 import org.kurento.room.api.KurentoClientProvider;
@@ -216,6 +218,9 @@ public class RoomManager {
     participant.createPublishingEndpoint();
 
     for (MediaElement elem : mediaElements) {
+    	if (elem instanceof PassThrough){
+    		room.getRecordingFlag = true;
+    	}
       participant.getPublisher().apply(elem);
     }
 
@@ -229,7 +234,18 @@ public class RoomManager {
     room.newPublisher(participant);
     return sdpResponse;
   }
+  
+  public boolean IsRoomRecording(String participantId){
+	  Participant participant = getParticipant(participantId);
+	    
+	    Room room = participant.getRoom();
+	  return room.getRecordingFlag;
+  }
 
+  public void connectPublisherRecorder(String participantId,PassThrough passThru, MediaElement mediaEl){
+	  this.getParticipant(participantId).connectRecorder(passThru, mediaEl);
+  }
+  
   /**
    * Same as
    * {@link #publishMedia(String, boolean, String, MediaElement, MediaType, boolean, MediaElement...)}

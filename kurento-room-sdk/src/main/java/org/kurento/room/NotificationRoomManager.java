@@ -19,9 +19,11 @@ package org.kurento.room;
 import javax.annotation.PreDestroy;
 import java.util.Set;
 
+import org.kurento.client.HubPort;
 import org.kurento.client.MediaElement;
 import org.kurento.client.MediaPipeline;
 import org.kurento.client.MediaType;
+import org.kurento.client.PassThrough;
 import org.kurento.room.api.KurentoClientProvider;
 import org.kurento.room.api.KurentoClientSessionInfo;
 import org.kurento.room.api.MutedMediaType;
@@ -161,6 +163,15 @@ public class NotificationRoomManager {
     if (sdpAnswer != null) {
       notificationRoomHandler.onPublishMedia(request, userName, sdpAnswer, participants, null);
     }
+  }
+  
+  public void connectPublisherRecorder(String participantId, PassThrough passThru, MediaElement mediaEl){
+	  
+	  internalManager.connectPublisherRecorder(participantId, passThru, mediaEl);
+  }
+  
+  public boolean IsRoomRecording(String participantId){
+	  return internalManager.IsRoomRecording(participantId);
   }
 
   /**

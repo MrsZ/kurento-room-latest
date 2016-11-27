@@ -9,6 +9,9 @@ kurento_room.controller('loginController', function($scope, $rootScope, $http,
     $scope.existingRoomName = false;
     $scope.roomPickerClass = 'grid__col6';
     $scope.roomPickerLabel = 'Room';
+    if (typeof (Logger) === 'undefined'){
+    	Logger = console;
+    }
     var name = $routeParams["existingRoomName"];
     if (name && name.length > 0) {
         $scope.room = {

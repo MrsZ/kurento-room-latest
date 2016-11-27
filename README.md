@@ -139,3 +139,11 @@ Before asking for support, please read first the [Kurento Netiquette Guidelines]
 [apiary.io]: http://docs.streamoriented.apiary.io/
 [GitHub Doc Kurento Room]: https://github.com/Kurento/doc-kurento-room-readthedocs
 [doc-kurento-room]: http://www.kurento.org/docs/room-current/
+
+
+NOTES:
+-> directory where Kurento-Room is running from: C:\Projects\Git\kurento-room-20161117 
+to install in different directory, you'll need to change some files: pom.properties
+-> to run kurento-room, change IP of the Kurento server installation in following files:
+Kurento-room-demo/package/config/app.conf.json
+Kurento-room-demo/src/main/resources/kurento-room-demo.conf.json
